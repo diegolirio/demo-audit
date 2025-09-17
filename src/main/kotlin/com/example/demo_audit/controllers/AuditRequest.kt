@@ -5,4 +5,5 @@ data class AuditRequest(
     val after: Map<String, Any>,
     val origin: String,
     val userAgent: String,
+    val ignoredFields: Set<String>?,
 )

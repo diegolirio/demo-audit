@@ -1,14 +1,9 @@
 package com.example.demo_audit.controllers
 
-import com.example.demo_audit.AuditDiffComputer
-import com.example.demo_audit.repository.AuditEntity
+import com.example.demo_audit.domain.Audit
 import com.example.demo_audit.repository.AuditRepository
 import org.slf4j.LoggerFactory
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/audit")
@@ -22,23 +17,19 @@ class AuditController(
         @RequestBody request: AuditRequest,
     ): AuditResponse {
         logger.info(request.toString())
-        val computeChanges =
-            AuditDiffComputer.computeChanges(
-                request.before,
-                request.after,
-                request.ignoredFields,
-            )
-        val auditEntity =
-            AuditEntity(
+        val domain =
+            Audit.create(
+                before = request.before,
+                after = request.after,
                 origin = request.origin,
                 userAgent = request.userAgent,
-                changes = computeChanges,
+                ignoredFields = request.ignoredFields,
             )
-        auditRepository.save(auditEntity)
-        logger.info(computeChanges.toString())
+        val saved = auditRepository.save(domain)
+        logger.info(saved.toString())
         return AuditResponse(message = "Audit created successfully")
     }
 
     @GetMapping
-    fun getAudits(): List<AuditEntity> = auditRepository.fundAll()
+    fun getAudits(): List<Audit> = auditRepository.fundAll()
 }
